@@ -1,6 +1,6 @@
 # PC Part Configurator
 
-A web-based tool that allows users to select PC components (CPU, Motherboard, GPU) and automatically checks their compatibility using a backend logic system. 
+Web-based tool that allows users to select PC components (CPU, Motherboard, GPU) and automatically checks their compatibility using a backend logic system. 
 ** is still at a very early stage of development: **
 **Client-Server Architecture**, **API communication**, and **E-commerce hardware logic**.
 
