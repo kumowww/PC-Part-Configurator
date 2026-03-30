@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PC Part Configurator</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 50px;
+        }
+        .configurator-box {
+            background-color: #1e1e1e;
+            padding: 30px;
+            border-radius: 10px;
+            width: 400px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+        }
+        select, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #333;
+            color: white;
+            border: 1px solid #555;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #f39c12;
+            cursor: pointer;
+            font-weight: bold;
+            border: none;
+        }
+        button:hover { background-color: #e67e22; }
+        .error-text { color: #ff4c4c; font-weight: bold; margin-top: 10px; }
+        .success-text { color: #2ecc71; font-weight: bold; margin-top: 10px; }
+        .warning-text { color: #f1c40f; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+    <h1>Build Your PC</h1>
+    <div class="configurator-box">
+        <label for="cpu">Select CPU:</label>
+        <select id="cpu">
+            <option value="1">AMD Ryzen 5 5600X</option>
+            <option value="2">Intel Core i5-12400F</option>
+        </select>
+
+        <label for="motherboard">Select Motherboard:</label>
+        <select id="motherboard">
+            <option value="1">MSI B550 TOMAHAWK (AM4)</option>
+            <option value="2">ASUS PRIME Z690-P (LGA1700)</option>
+        </select>
+
+        <label for="gpu">Select GPU:</label>
+        <select id="gpu">
+            <option value="1">NVIDIA RTX 3060</option>
+            <option value="2">AMD Radeon RX 6700 XT</option>
+        </select>
+
+        <button onclick="checkCompatibility()">Check Compatibility</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        async function checkCompatibility() {
+            const cpuId = document.getElementById('cpu').value;
+            const moboId = document.getElementById('motherboard').value;
+            const gpuId = document.getElementById('gpu').value;
+            const resultDiv = document.getElementById('result');
+
+            // Clear previous results
+            resultDiv.innerHTML = "Checking...";
+
+            try {
+                // Sending data to our PHP backend
+                const response = await fetch(`check_compatibility.php?cpu=${cpuId}&mobo=${moboId}&gpu=${gpuId}`);
+                const data = await response.json();
+
+                let htmlContent = "";
+
+                // Check Socket Compatibility
+                if (!data.socketCompatible) {
+                    htmlContent += `<p class="error-text">This motherboard socket does not fit this CPU.</p>`;
+                } else {
+                    htmlContent += `<p class="success-text">CPU and Motherboard are compatible!</p>`;
+                }
+
+                // Check GPU pairing
+                if (data.bottleneck) {
+                    htmlContent += `<p class="warning-text">Warning: Potential bottleneck. ${data.gpuMessage}</p>`;
+                } else {
+                    htmlContent += `<p class="success-text">Great CPU and GPU pairing!</p>`;
+                }
+
+                resultDiv.innerHTML = htmlContent;
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error-text">Error connecting to server.</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
