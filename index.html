@@ -5,106 +5,97 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PC Part Configurator</title>
     <style>
-        body {
-            background-color: #121212;
-            color: #ffffff;
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-top: 50px;
-        }
-        .configurator-box {
-            background-color: #1e1e1e;
-            padding: 30px;
-            border-radius: 10px;
-            width: 400px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
-        }
-        select, button {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            background-color: #333;
-            color: white;
-            border: 1px solid #555;
-            border-radius: 5px;
-        }
-        button {
-            background-color: #f39c12;
-            cursor: pointer;
-            font-weight: bold;
-            border: none;
-        }
-        button:hover { background-color: #e67e22; }
-        .error-text { color: #ff4c4c; font-weight: bold; margin-top: 10px; }
-        .success-text { color: #2ecc71; font-weight: bold; margin-top: 10px; }
-        .warning-text { color: #f1c40f; margin-top: 5px; }
+        body { background-color: #121212; color: white; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; padding: 50px; }
+        .container { background-color: #1e1e1e; padding: 30px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 400px; }
+        select, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 6px; border: 1px solid #333; background: #252525; color: white; }
+        button { background-color: #007bff; font-weight: bold; cursor: pointer; transition: 0.3s; border: none; }
+        button:hover { background-color: #0056b3; }
+        .result-box { margin-top: 20px; padding: 15px; border-radius: 6px; display: none; }
+        .error { background-color: #441a1a; border: 1px solid #ff4444; color: #ff8888; }
+        .success { background-color: #1a3a1a; border: 1px solid #44ff44; color: #88ff88; }
     </style>
 </head>
 <body>
 
-    <h1>Build Your PC</h1>
-    <div class="configurator-box">
-        <label for="cpu">Select CPU:</label>
-        <select id="cpu">
-            <option value="1">AMD Ryzen 5 5600X</option>
-            <option value="2">Intel Core i5-12400F</option>
-        </select>
+<div class="container">
+    <h2>PC Configurator</h2>
+    
+    <label>Choose CPU:</label>
+    <select id="cpu-select"><option>Loading...</option></select>
 
-        <label for="motherboard">Select Motherboard:</label>
-        <select id="motherboard">
-            <option value="1">MSI B550 TOMAHAWK (AM4)</option>
-            <option value="2">ASUS PRIME Z690-P (LGA1700)</option>
-        </select>
+    <label>Choose Motherboard:</label>
+    <select id="mobo-select"><option>Loading...</option></select>
 
-        <label for="gpu">Select GPU:</label>
-        <select id="gpu">
-            <option value="1">NVIDIA RTX 3060</option>
-            <option value="2">AMD Radeon RX 6700 XT</option>
-        </select>
+    <label>Choose Power Supply:</label>
+    <select id="psu-select"><option>Loading...</option></select>
 
-        <button onclick="checkCompatibility()">Check Compatibility</button>
+    <button onclick="checkBuild()">Validate Build</button>
 
-        <div id="result"></div>
-    </div>
+    <div id="result" class="result-box"></div>
+</div>
 
-    <script>
-        async function checkCompatibility() {
-            const cpuId = document.getElementById('cpu').value;
-            const moboId = document.getElementById('motherboard').value;
-            const gpuId = document.getElementById('gpu').value;
-            const resultDiv = document.getElementById('result');
+<script>
+    async function loadComponents() {
+        try {
+            const response = await fetch('http://127.0.0.1:5000/api/components');
+            if (!response.ok) throw new Error('Backend server is not responding');
+            
+            const data = await response.json();
 
-            // Clear previous results
-            resultDiv.innerHTML = "Checking...";
+            const fillSelect = (id, list) => {
+                const select = document.getElementById(id);
+                select.innerHTML = ""; 
+                list.forEach(item => {
+                    let opt = document.createElement('option');
+                    opt.value = item.id;
+                    opt.innerHTML = `${item.name} (${item.price}€)`;
+                    select.appendChild(opt);
+                });
+            };
 
-            try {
-                // Sending data to our PHP backend
-                const response = await fetch(`check_compatibility.php?cpu=${cpuId}&mobo=${moboId}&gpu=${gpuId}`);
-                const data = await response.json();
-
-                let htmlContent = "";
-
-                // Check Socket Compatibility
-                if (!data.socketCompatible) {
-                    htmlContent += `<p class="error-text">This motherboard socket does not fit this CPU.</p>`;
-                } else {
-                    htmlContent += `<p class="success-text">CPU and Motherboard are compatible!</p>`;
-                }
-
-                // Check GPU pairing
-                if (data.bottleneck) {
-                    htmlContent += `<p class="warning-text">Warning: Potential bottleneck. ${data.gpuMessage}</p>`;
-                } else {
-                    htmlContent += `<p class="success-text">Great CPU and GPU pairing!</p>`;
-                }
-
-                resultDiv.innerHTML = htmlContent;
-            } catch (error) {
-                resultDiv.innerHTML = `<p class="error-text">Error connecting to server.</p>`;
-            }
+            fillSelect('cpu-select', data.cpus);
+            fillSelect('mobo-select', data.motherboards);
+            fillSelect('psu-select', data.psus);
+        } catch (error) {
+            const resDiv = document.getElementById('result');
+            resDiv.style.display = 'block';
+            resDiv.className = 'result-box error';
+            resDiv.innerHTML = "Error: Make sure 'python app.py' is running!";
         }
-    </script>
+    }
+
+    async function checkBuild() {
+        const payload = {
+            cpu_id: document.getElementById('cpu-select').value,
+            mobo_id: document.getElementById('mobo-select').value,
+            psu_id: document.getElementById('psu-select').value
+        };
+
+        try {
+            const response = await fetch('http://127.0.0.1:5000/api/validate', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+            const resDiv = document.getElementById('result');
+            resDiv.style.display = 'block';
+
+            if (data.status === 'error') {
+                resDiv.className = 'result-box error';
+                resDiv.innerHTML = data.messages.join('<br>');
+            } else {
+                resDiv.className = 'result-box success';
+                resDiv.innerHTML = `✅ Compatible!<br>Price: ${data.total_price}€<br>Power Usage: ~${data.wattage}W`;
+            }
+        } catch (e) {
+            alert("Connection to server lost.");
+        }
+    }
+
+    loadComponents();
+</script>
+
 </body>
 </html>

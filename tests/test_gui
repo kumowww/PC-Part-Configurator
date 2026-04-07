@@ -1,0 +1,37 @@
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import Select
+import os
+import time
+
+def test_compatibility():
+    driver = webdriver.Chrome()
+    # Path to your local index.html file
+    file_path = "file://" + os.path.abspath("index.html")
+    
+    try:
+        driver.get(file_path)
+        time.sleep(2) # Wait for API load
+
+        # Select AMD CPU
+        cpu_select = Select(driver.find_element(By.ID, "cpu-select"))
+        cpu_select.select_by_index(0)
+
+        # Select Intel Motherboard (Trigger Error)
+        mobo_select = Select(driver.find_element(By.ID, "mobo-select"))
+        mobo_select.select_by_index(1)
+
+        driver.find_element(By.TAG_NAME, "button").click()
+        time.sleep(1)
+
+        result_text = driver.find_element(By.ID, "result").text
+        if "Incompatible" in result_text:
+            print("GUI Test Passed: Error message displayed correctly.")
+        else:
+            print("GUI Test Failed: Compatibility logic error.")
+
+    finally:
+        driver.quit()
+
+if __name__ == "__main__":
+    test_compatibility()
