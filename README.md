@@ -2,6 +2,9 @@
 
 Web-based tool that allows users to select PC components (CPU, Motherboard, PSU) and automatically checks their compatibility using a Python-based backend logic system.
 
+<img width="1920" height="990" alt="image" src="https://github.com/user-attachments/assets/2450cacc-132f-4a83-8b63-ff5f09a2eb44" />
+
+
 ## Features
 * **Dark Mode UI:** Modern, user-friendly interface with clear visual feedback.
 * **Socket Compatibility Check:** Verifies if the selected CPU fits the chosen Motherboard socket.
