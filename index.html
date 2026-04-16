@@ -37,8 +37,8 @@
 <script>
     async function loadComponents() {
         try {
-            const response = await fetch('http://127.0.0.1:5000/api/components');
-            if (!response.ok) throw new Error('Backend server is not responding');
+            const response = await fetch('/api/components');
+            if (!response.ok) throw new Error('Backend error');
             
             const data = await response.json();
 
@@ -52,7 +52,6 @@
                     select.appendChild(opt);
                 });
             };
-
             fillSelect('cpu-select', data.cpus);
             fillSelect('mobo-select', data.motherboards);
             fillSelect('psu-select', data.psus);
@@ -60,19 +59,17 @@
             const resDiv = document.getElementById('result');
             resDiv.style.display = 'block';
             resDiv.className = 'result-box error';
-            resDiv.innerHTML = "Error: Make sure 'python app.py' is running!";
+            resDiv.innerHTML = "Error: Backend server is unavailable.";
         }
     }
-
     async function checkBuild() {
         const payload = {
             cpu_id: document.getElementById('cpu-select').value,
             mobo_id: document.getElementById('mobo-select').value,
             psu_id: document.getElementById('psu-select').value
         };
-
         try {
-            const response = await fetch('http://127.0.0.1:5000/api/validate', {
+            const response = await fetch('/api/validate', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(payload)
@@ -90,11 +87,12 @@
                 resDiv.innerHTML = `🐼 Compatible!<br>Price: ${data.total_price}€<br>Power Usage: ~${data.wattage}W`;
             }
         } catch (e) {
-            alert("Connection to server lost.");
+            const resDiv = document.getElementById('result');
+            resDiv.style.display = 'block';
+            resDiv.className = 'result-box error';
+            resDiv.innerHTML = "Connection to server lost.";
         }
-    }
-
-    loadComponents();
+    } loadComponents();
 </script>
 
 </body>
