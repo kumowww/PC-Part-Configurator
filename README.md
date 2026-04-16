@@ -1,6 +1,8 @@
 # PC Part Configurator
 
-Web-based tool that allows users to select PC components (CPU, Motherboard, PSU) and automatically checks their compatibility using a Python-based backend logic system.
+Web application designed to help users build a PC while automatically verifying component compatibility(the project features a Python Flask backend, an SQLite database, and a modern dark-themed frontend).
+
+Visit the live project: https://pc-part-configurator.vercel.app/
 
 <img width="568" height="516" alt="image" src="https://github.com/user-attachments/assets/762e1f1b-ef50-4310-89bd-a20820463e0f" />
 
