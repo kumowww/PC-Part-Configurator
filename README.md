@@ -2,20 +2,20 @@
 
 Web-based tool that allows users to select PC components (CPU, Motherboard, PSU) and automatically checks their compatibility using a Python-based backend logic system.
 
-<img width="1633" height="836" alt="image" src="https://github.com/user-attachments/assets/750754d9-6570-4e35-8522-d96a4559ef59" />
+<img width="568" height="516" alt="image" src="https://github.com/user-attachments/assets/762e1f1b-ef50-4310-89bd-a20820463e0f" />
 
 ## Features
-* **Dark Mode UI:** Modern, user-friendly interface with clear visual feedback.
-* **Socket Compatibility Check:** Verifies if the selected CPU fits the chosen Motherboard socket.
-* **Wattage Verification:** Checks if the Power Supply Unit (PSU) can handle the system load.
-* **Real-time Price Calculation:** Summarizes the total cost of selected components.
-* **REST API Communication:** The frontend (Vanilla JS) communicates with the backend (Flask) using asynchronous `fetch` calls.
+* **Live Compatibility Engine:** Automatically checks if the CPU socket matches the Motherboard socket.
+* **Wattage Validation:** Calculates system power consumption and verifies if the PSU capacity is sufficient.
+* **Dynamic Database:** Components are fetched from an SQLite database instead of hardcoded arrays.
+* **Real-time Price Calculation:** Summarizes the total cost of the selected build.
+* **REST API Architecture:** Clean separation between the Vanilla JS frontend and the Flask backend.
 
 ## Tech Stack
-- **Frontend:** HTML5, CSS3, Vanilla JS
-- **Backend:** Python (Flask)
-- **Data Structure:** JSON Objects (Ready for SQL integration)
-- **Testing:** Selenium WebDriver (Automated test scripts included)
+* **Frontend:** HTML5, CSS3, JavaScript (Fetch API).
+* **Backend:** Python (Flask), Flask-CORS.
+* **Database:** SQLite3.
+* **Deployment:** Vercel (Serverless Functions).
 
 ## How to Run Locally
 
