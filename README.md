@@ -40,3 +40,6 @@ Make sure you have **Python 3.x** installed on your system.
 *Integrate a real PostgreSQL/MySQL database to replace mock dictionaries
 *Add more hardware categories (RAM, GPU, Storage)
 *Implement automated CI/CD pipeline for testing
+
+## Future Improvements
+Integration of Dedicated GPU (Video Card) selection with precise wattage tracking / RAM compatibility checks (DDR4 vs DDR5) based on Motherboard support / Case form-factor validation (ATX, Micro-ATX, Mini-ITX)
