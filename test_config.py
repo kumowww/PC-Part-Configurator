@@ -5,13 +5,12 @@ import time
 
 def test_incompatible_socket():
     driver = webdriver.Chrome()
-    driver.get("file:///твоя_папка/index.html") # Укажи путь к файлу
+    driver.get("file:///path/to/your/index.html")
     time.sleep(1)
 
-    # Выбираем AMD CPU
-    Select(driver.find_element(By.ID, "cpu-select")).select_by_value("1") 
-    # Выбираем Intel Motherboard
-    Select(driver.find_element(By.ID, "mobo-select")).select_by_value("2") 
+    Select(driver.find_element(By.ID, "cpu-model-select")).select_by_value("i5-9600")
+    Select(driver.find_element(By.ID, "cpu-suffix-select")).select_by_value("1")
+    Select(driver.find_element(By.ID, "mobo-select")).select_by_value("2")
 
     driver.find_element(By.TAG_NAME, "button").click()
     time.sleep(1)
@@ -21,7 +20,7 @@ def test_incompatible_socket():
         print("Test Passed: Incompatibility detected correctly.")
     else:
         print("Test Failed!")
-    
+
     driver.quit()
 
 if __name__ == "__main__":
