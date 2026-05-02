@@ -6,18 +6,19 @@ import time
 
 def test_compatibility():
     driver = webdriver.Chrome()
-    # Path to your local index.html file
     file_path = "file://" + os.path.abspath("index.html")
-    
+
     try:
         driver.get(file_path)
-        time.sleep(2) # Wait for API load
+        time.sleep(2)
 
-        # Select AMD CPU
-        cpu_select = Select(driver.find_element(By.ID, "cpu-select"))
-        cpu_select.select_by_index(0)
+        model_select = Select(driver.find_element(By.ID, "cpu-model-select"))
+        model_select.select_by_visible_text("Ryzen 5 7600")
+        time.sleep(1)
 
-        # Select Intel Motherboard (Trigger Error)
+        suffix_select = Select(driver.find_element(By.ID, "cpu-suffix-select"))
+        suffix_select.select_by_index(0)
+
         mobo_select = Select(driver.find_element(By.ID, "mobo-select"))
         mobo_select.select_by_index(1)
 
@@ -26,7 +27,7 @@ def test_compatibility():
 
         result_text = driver.find_element(By.ID, "result").text
         if "Incompatible" in result_text:
-            print("GUI Test Passed: Error message displayed correctly.")
+            print("GUI Test Passed: Incompatibility detected correctly.")
         else:
             print("GUI Test Failed: Compatibility logic error.")
 
