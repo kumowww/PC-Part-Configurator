@@ -51,3 +51,6 @@ def validate_build():
         return jsonify({"status": "error", "messages": errors})
     total_price = cpu['price'] + mobo['price'] + psu['price']
     return jsonify({"status": "ok", "total_price": total_price, "wattage": total_wattage})
+
+if __name__ == "__main__":
+    app.run(debug=True)
