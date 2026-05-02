@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PC Part Configurator</title>
+    <style>
+        body { background-color: #121212; color: white; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; padding: 50px; }
+        .container { background-color: #1e1e1e; padding: 30px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); width: 400px; }
+        select, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 6px; border: 1px solid #333; background: #252525; color: white; }
+        button { background-color: #007bff; font-weight: bold; cursor: pointer; transition: 0.3s; border: none; }
+        button:hover { background-color: #0056b3; }
+        .result-box { margin-top: 20px; padding: 15px; border-radius: 6px; display: none; }
+        .error { background-color: #441a1a; border: 1px solid #ff4444; color: #ff8888; }
+        .success { background-color: #1a3a1a; border: 1px solid #44ff44; color: #88ff88; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>PC Configurator</h2>
+    
+    <label>Choose CPU Model:</label>
+    <select id="cpu-model-select"><option>Loading...</option></select>
+    
+    <label>Choose CPU Suffix:</label>
+    <select id="cpu-suffix-select"><option>Select model first</option></select>
+
+    <label>Choose Motherboard:</label>
+    <select id="mobo-select"><option>Loading...</option></select>
+
+    <label>Choose Power Supply:</label>
+    <select id="psu-select"><option>Loading...</option></select>
+
+    <button onclick="checkBuild()">Validate Build</button>
+
+    <div id="result" class="result-box"></div>
+</div>
+
+<script>
+    let cpuData = {};
+
+    async function loadComponents() {
+        try {
+            const response = await fetch('/api/components');
+            if (!response.ok) throw new Error('Backend error');
+            
+            const data = await response.json();
+            cpuData = data.cpuModels;
+
+            const modelSelect = document.getElementById('cpu-model-select');
+            modelSelect.innerHTML = '<option value="">-- Select CPU Model --</option>';
+            for (const model in cpuData) {
+                const opt = document.createElement('option');
+                opt.value = model;
+                opt.textContent = model;
+                modelSelect.appendChild(opt);
+            }
+
+            const fillSelect = (id, list) => {
+                const select = document.getElementById(id);
+                select.innerHTML = "";
+                list.forEach(item => {
+                    const opt = document.createElement('option');
+                    opt.value = item.id;
+                    opt.innerHTML = `${item.name} (${item.price}€)`;
+                    select.appendChild(opt);
+                });
+            };
+            fillSelect('mobo-select', data.motherboards);
+            fillSelect('psu-select', data.psus);
+
+            modelSelect.addEventListener('change', function() {
+                const suffixSelect = document.getElementById('cpu-suffix-select');
+                suffixSelect.innerHTML = '<option value="">-- Select Suffix --</option>';
+                const selectedModel = this.value;
+                if (selectedModel && cpuData[selectedModel]) {
+                    cpuData[selectedModel].forEach(cpu => {
+                        const opt = document.createElement('option');
+                        opt.value = cpu.id;
+                        opt.textContent = cpu.suffix || 'None';
+                        suffixSelect.appendChild(opt);
+                    });
+                }
+            });
+        } catch (error) {
+            const resDiv = document.getElementById('result');
+            resDiv.style.display = 'block';
+            resDiv.className = 'result-box error';
+            resDiv.innerHTML = "Error: Backend server is unavailable.";
+        }
+    }
+
+    async function checkBuild() {
+        const cpuId = document.getElementById('cpu-suffix-select').value;
+        if (!cpuId) {
+            const resDiv = document.getElementById('result');
+            resDiv.style.display = 'block';
+            resDiv.className = 'result-box error';
+            resDiv.innerHTML = "Please select a CPU.";
+            return;
+        }
+        const payload = {
+            cpu_id: cpuId,
+            mobo_id: document.getElementById('mobo-select').value,
+            psu_id: document.getElementById('psu-select').value
+        };
+        try {
+            const response = await fetch('/api/validate', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+            const resDiv = document.getElementById('result');
+            resDiv.style.display = 'block';
+
+            if (data.status === 'error') {
+                resDiv.className = 'result-box error';
+                resDiv.innerHTML = data.messages.join('<br>');
+            } else {
+                resDiv.className = 'result-box success';
+                resDiv.innerHTML = `🐼Compatible!<br>Price: ${data.total_price}€<br>Power Usage: ~${data.wattage}W`;
+            }
+        } catch (e) {
+            const resDiv = document.getElementById('result');
+            resDiv.style.display = 'block';
+            resDiv.className = 'result-box error';
+            resDiv.innerHTML = "Connection to server lost.";
+        }
+    }
+
+    loadComponents();
+</script>
+
+</body>
+</html>
