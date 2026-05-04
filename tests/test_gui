@@ -28,8 +28,10 @@ def test_compatibility():
         result_text = driver.find_element(By.ID, "result").text
         if "Incompatible" in result_text:
             print("GUI Test Passed: Incompatibility detected correctly.")
+            assert "Incompatible" in result_text
         else:
             print("GUI Test Failed: Compatibility logic error.")
+            assert False, "Expected incompatibility not detected."
 
     finally:
         driver.quit()
