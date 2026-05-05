@@ -11,6 +11,7 @@ def test_incompatible_socket():
     Select(driver.find_element(By.ID, "cpu-model-select")).select_by_value("i5-9600")
     Select(driver.find_element(By.ID, "cpu-suffix-select")).select_by_value("1")
     Select(driver.find_element(By.ID, "mobo-select")).select_by_value("2")
+    
 
     driver.find_element(By.TAG_NAME, "button").click()
     time.sleep(1)
@@ -18,8 +19,10 @@ def test_incompatible_socket():
     result = driver.find_element(By.ID, "result").text
     if "Incompatible" in result:
         print("Test Passed: Incompatibility detected correctly.")
+        assert True, "Incompatibility detected as expected."
     else:
         print("Test Failed!")
+        assert False, "Expected incompatibility not detected."
 
     driver.quit()
 

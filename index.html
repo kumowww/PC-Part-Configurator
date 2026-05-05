@@ -49,7 +49,7 @@
             cpuData = data.cpuModels;
 
             const modelSelect = document.getElementById('cpu-model-select');
-            modelSelect.innerHTML = '<option value="">-- Select CPU Model --</option>';
+            modelSelect.innerHTML = '<option value="">- Select CPU Model -</option>';
             for (const model in cpuData) {
                 const opt = document.createElement('option');
                 opt.value = model;
@@ -98,6 +98,7 @@
             resDiv.style.display = 'block';
             resDiv.className = 'result-box error';
             resDiv.innerHTML = "Please select a CPU.";
+            resDiv.scrollIntoView({ behavior: 'smooth' });
             return;
         }
         const payload = {
