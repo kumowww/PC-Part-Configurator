@@ -1,9 +1,9 @@
 <?php
 header('Content-Type: application/json');
 
-$cpu_id = isset($_GET['cpu']) ? (int)$_GET['cpu'] : 0;
-$mobo_id = isset($_GET['mobo']) ? (int)$_GET['mobo'] : 0;
-$gpu_id = isset($_GET['gpu']) ? (int)$_GET['gpu'] : 0;
+$cpu_id = filter_input(INPUT_GET, 'cpu', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: 0;
+$mobo_id = filter_input(INPUT_GET, 'mobo', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: 0;
+$gpu_id = filter_input(INPUT_GET, 'gpu', FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: 0;
 
 $mock_cpus = [
     1 => ['name' => 'AMD Ryzen 5 5600X', 'socket' => 'AM4', 'performance_score' => 80],
@@ -26,7 +26,7 @@ $response = [
     'gpuMessage' => ''
 ];
 
-if (isset($mock_cpus[$cpu_id]) && isset($mock_mobos[$mobo_id]) && isset($mock_gpus[$gpu_id])) {
+if (array_key_exists($cpu_id, $mock_cpus) && array_key_exists($mobo_id, $mock_mobos) && array_key_exists($gpu_id, $mock_gpus)) {
     $selected_cpu = $mock_cpus[$cpu_id];
     $selected_mobo = $mock_mobos[$mobo_id];
     $selected_gpu = $mock_gpus[$gpu_id];
@@ -36,7 +36,7 @@ if (isset($mock_cpus[$cpu_id]) && isset($mock_mobos[$mobo_id]) && isset($mock_gp
     }
 
     $score_difference = abs($selected_cpu['performance_score'] - $selected_gpu['performance_score']);
-    
+
     if ($score_difference > 15) {
         $response['bottleneck'] = true;
         $response['gpuMessage'] = "The CPU might bottleneck the GPU, or vice versa. Consider a more balanced pair.";
