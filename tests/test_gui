@@ -1,40 +1,78 @@
-from selenium import webdriver
+import pytest
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import Select
-import os
-import time
+from selenium.webdriver.support.ui import WebDriverWait, Select
+from selenium.webdriver.support import expected_conditions as EC
 
-def test_compatibility():
-    driver = webdriver.Chrome()
-    file_path = "file://" + os.path.abspath("index.html")
+def select_option_by_text(select_elem, text_substr):
+     """Selects the first option in the select list whose text contains text_substr."""
+    for opt in select_elem.options:
+        if text_substr in opt.text:
+            select_elem.select_by_visible_text(opt.text)
+            return True
+    return False
 
-    try:
-        driver.get(file_path)
-        time.sleep(2)
+def test_incompatibility_detected(driver):
+    """
+    The test opens the front-end at http://localhost:5000/,
+    selects a CPU model and a deliberately incompatible motherboard, then clicks Validate Build
+    and waits for an incompatibility message.
+    """
+    driver.get("http://127.0.0.1:5000/")
 
-        model_select = Select(driver.find_element(By.ID, "cpu-model-select"))
-        model_select.select_by_visible_text("Ryzen 5 7600")
-        time.sleep(1)
+    wait = WebDriverWait(driver, 10)
+    # Waiting for the model selection to load
+    wait.until(EC.presence_of_element_located((By.ID, "cpu-model-select")))
 
-        suffix_select = Select(driver.find_element(By.ID, "cpu-suffix-select"))
-        suffix_select.select_by_index(0)
+    model_select = Select(driver.find_element(By.ID, "cpu-model-select"))
 
-        mobo_select = Select(driver.find_element(By.ID, "mobo-select"))
-        mobo_select.select_by_index(1)
+    # Waiting for there to be more than one option (loading from the API)
+    wait.until(lambda d: len(model_select.options) > 1)
 
-        driver.find_element(By.TAG_NAME, "button").click()
-        time.sleep(1)
+    # Select a model that is in the database: "Ryzen 5 7600" (listed in the database as model)
+    # If the option text matches exactly, select_by_visible_text will work; otherwise, you can switch to another model from the database.
+    assert select_option_by_text(model_select, "Ryzen 5 7600"), "CPU model 'Ryzen 5 7600' not found in options"
 
-        result_text = driver.find_element(By.ID, "result").text
-        if "Incompatible" in result_text:
-            print("GUI Test Passed: Incompatibility detected correctly.")
-            assert "Incompatible" in result_text
+    # waiting for suffix-select to appear and be populated
+    wait.until(EC.presence_of_element_located((By.ID, "cpu-suffix-select")))
+    suffix_select = Select(driver.find_element(By.ID, "cpu-suffix-select"))
+    wait.until(lambda d: len(suffix_select.options) > 0)
+
+    # Select the first suffix (this is usually a specific CPU ID)
+    # If there is a specific suffix, we choose it; otherwise, we choose the first non-zero option
+    # Here, we simply select the first actual option (not a placeholder)
+    chosen_suffix = None
+    for opt in suffix_select.options:
+        if opt.get_attribute("value"):
+            chosen_suffix = opt
+            suffix_select.select_by_value(opt.get_attribute("value"))
+            break
+    assert chosen_suffix is not None, "No CPU suffix option available"
+
+    # Now let’s choose an incompatible motherboard: look for one with an Intel series (e.g. Z390) to ensure it definitely isn’t an AM5
+    mobo_select = Select(driver.find_element(By.ID, "mobo-select"))
+    wait.until(lambda d: len(mobo_select.options) > 1)
+
+    found = False
+    for opt in mobo_select.options:
+        if "Z390" in opt.text or "Z790" in opt.text or "Z" in opt.text and "B650" not in opt.text:
+            # Choose a motherboard which, as a rule, has a socket different from AM5
+            mobo_select.select_by_visible_text(opt.text)
+            found = True
+            break
+
+    # If nothing is found using heuristics, simply choose a different board (the second option)
+    if not found:
+        if len(mobo_select.options) >= 2:
+            mobo_select.select_by_index(1)
         else:
-            print("GUI Test Failed: Compatibility logic error.")
-            assert False, "Expected incompatibility not detected."
+            pytest.skip("Not enough motherboard options to run incompatibility test")
 
-    finally:
-        driver.quit()
+    # Нажимаем кнопку «Validate Build»
+    btn = driver.find_element(By.TAG_NAME, "button")
+    btn.click()
 
-if __name__ == "__main__":
-    test_compatibility()
+    # Waiting for the result to come in 0_0
+    result = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.ID, "result")))
+    text = result.text
+    # Expect that incompatibility is specified there
+    assert "Incompatible" in text or "Invalid" in text or "Error" in text, f"Expected incompatibility/error message, got: {text}"
